@@ -1,48 +1,70 @@
-//refered man page of socket and bind(example is given)
 #include<stdio.h>
-#include<stdlib.h>
 #include<sys/types.h>
 #include<sys/socket.h>
-#include<sys/un.h>
-#include <netinet/in.h>    //for struct sockaddr_in
-int main()
+#include<netinet/in.h>		//for struct sockaddr_in
+#include<string.h>
+#include<pthread.h>
+#include<stdlib.h>
+void *myaccept(void *);
+
+void main()
 {
-	printf("Inception\n");
-	int sockfd,cfd;
-	struct sockaddr_in my_addr,peer_addr;  
-	socklen_t peer_addr_size;
+        int sockfd,newsockfd;
+	struct sockaddr_in serv_addr;         //for AF_INET
+	struct sockaddr_in peer_addr;         //used in accept()
+	socklen_t peer_len;
+        char buf[256];
+        pthread_t new_thread;
 	sockfd = socket(AF_INET,SOCK_STREAM,0);
 	if(sockfd==-1)
-	{
-		printf("error in creating socket");
-		exit(0);
-	}
-	my_addr.sin_family = AF_INET;
-	my_addr.sin_port = htons(10001);
-	inet_aton("127.0.0.1",&(my_addr.sin_addr));
-	memset(&(my_addr.sin_zero),'\0',8);
-	if(bind(sockfd,(struct sockaddr *)&my_addr,sizeof(struct sockaddr_in))==-1)
-	{
-		printf("Error in binding");
-		exit(0);
-	}
+		printf("error in socket creation");
+	
+	
+	serv_addr.sin_family=AF_INET;
+	serv_addr.sin_port=htons(10003);
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	if(bind(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr))==-1)
+		printf("error in binding");
+	
 	if(listen(sockfd,5)==-1)
-		printf("error in listening on port");
-	cfd = accept(sockfd,(struct sockaddr*)&peer_addr,&peer_addr_size);
-	if(cfd == -1)
-		printf("error in accepting request");
-	printf("accepted request");
+		printf("error in listening");
+	
+	peer_len = sizeof(peer_addr);
+	
+        do
+        {
+          if((newsockfd=accept(sockfd,(struct sockaddr *)&peer_addr,&peer_len))==-1)
+            printf("error while accepting request");
+          if(!pthread_create(&new_thread,NULL,myaccept,(void *)newsockfd))
+            printf("\nnew thread created");
+          
+        }while(1);
 	close(sockfd);
 }
-
-
-
-/*
-1. socket
-2. bind
-3. listen
-4. accept
-	a. send
-	b. receive
-5. close
-*/
+void *myaccept(void *newsockfd1)
+{
+  char buf[256];
+  int newsockfd=(int)newsockfd1;
+  int n;
+  if(newsockfd==-1)
+    {
+      printf("error on accept");
+      exit(0);
+    }
+  else
+    {
+      do
+        {
+          bzero(buf,sizeof(buf));
+          //***newsockfd returned from accept 
+          n = recv(newsockfd,buf,sizeof(buf),0);
+          if(n<0)  
+            printf("\nerror in receiving message from client");
+          else 
+            printf("\nmessage received :%s",buf);
+          if(send(newsockfd,buf,sizeof(buf),0)==-1)
+            printf("error in sending msg to client");
+        }while(strcmp(buf,"exit\n"));
+    }
+        //        close(newsockfd);
+}
