@@ -1,4 +1,3 @@
-
 program SQRPROGRAM{
 	version SQRVER{
 		double sqr(double) = 12;

@@ -1,10 +1,17 @@
 #include<rpc/rpc.h>
-#include"sqr.h"
+#include "avg.h"
 
-static double *square;
-double * sqr_1_svc(double *num, struct svc_req *ss)
+double *sqr_1_svc(numlist *argp, struct svc_req *rqstp)
 {
-	square = (double *)malloc(sizeof(double));
-	*square = *num * *num;		
-	return (square);
+	static double  result;
+	int i;
+	for(i = 0; i< argp->len; i++)
+	{
+		result += argp->num[i];
+	}
+	printf("argument list :%d",argp->len);
+	result /= argp->len;
+	printf("result : %lf",result);
+	return &result;
 }
+

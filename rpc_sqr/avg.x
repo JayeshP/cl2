@@ -1,7 +1,9 @@
-constant MAXSIZE 50;
+const MAXSIZE=50;
 struct numlist{
-	double num<MAXSIZE>;
-}
+	int num[MAXSIZE];
+	int len;
+};
+typedef struct numlist numlist;
 program SQRPROGRAM{
 	version SQRVER{
 		double sqr(numlist) = 12;
