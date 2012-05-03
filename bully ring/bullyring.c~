@@ -1,0 +1,31 @@
+#include<stdio.h>
+#define MAX_PROCESS 50
+void main()
+{
+	int total_process,i,choice,n;
+	int status[MAX_PROCESS]; //keep track of activated process..0 for crashed and 1 for active
+	
+	printf("\nEnter number of processes : ");
+	scanf("%d",total_process);
+	for(i=0;i<total_process;i++)
+	{
+		status[i]=1;
+	}
+	do{
+		
+		printf("\nBully Algorithm :\n1.crash process\n2.Activate process\nExit");	
+		scanf("%d",choice);
+		switch(choice)
+		{
+			case 1:
+				printf("\nEnter the id of process : ");
+				scanf("%d",n);
+				break;
+			case 2:
+				break;
+			case 1:
+				break;
+		}
+	}while(choice!=3);
+}
+

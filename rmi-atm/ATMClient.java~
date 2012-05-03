@@ -1,0 +1,22 @@
+import java.rmi.Naming;
+import java.rmi.RemoteException;
+public class ATMClient{
+	static ATM obj = null;
+	static String message = "blank";
+	
+	public static void main(String args[]){
+		try
+		{
+			System.out.println("naming lookup starts");
+			obj = (ATM)Naming.lookup("rmi://localhost:1099/CalcServe");
+			System.out.println("succeesful naming lookup");
+			message = obj.display();
+			System.out.println("called remote method"+message);		
+		}
+		catch(Exception e)
+		{
+			System.out.println("ATM clientside Error "+e.getMessage());
+		}
+
+	}
+}

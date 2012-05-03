@@ -1,0 +1,7 @@
+
+1)javac ATMServer.java
+2)javac ATMClient.java
+3)javac ATM.java
+4)rmiregistry
+5)java ATMServer
+6)java ATMClient

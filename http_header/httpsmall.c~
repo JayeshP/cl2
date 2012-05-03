@@ -1,0 +1,99 @@
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<sys/socket.h>
+#include<arpa/inet.h>
+#include<netdb.h>
+#include<signal.h>
+#include<fcntl.h>
+
+int listenfd;	//server socket address
+
+void startServer(char *port)
+{
+    struct addrinfo hints, *res, *p;
+
+    memset (&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;			//used for giving hint about what type of socket's needed
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+	getaddrinfo(NULL, port, &hints, &res);	
+	/*
+	from man of getaddrinfo :
+	Given  node  and  service,  which  identify  an Internet host and a service,
+       getaddrinfo() returns one or more addrinfo structures, each  of  which  con‐
+       tains an Internet address that can be specified in a call to bind(2) or con‐
+       nect(2).  The getaddrinfo() function combines the functionality provided  by
+       the getservbyname(3) and getservbyport(3) functions into a single interface,
+       but unlike the latter functions, getaddrinfo() is reentrant and allows  pro‐
+       grams to eliminate IPv4-versus-IPv6 dependencies.
+
+	*/
+	/*If  the  AI_PASSIVE  flag  is specified in hints.ai_flags, and node is NULL,
+       then the returned socket addresses will be suitable for bind(2)ing a  socket
+       that  will  accept(2) connections.  The returned socket address will contain
+       the "wildcard address" (INADDR_ANY for IPv4 addresses, IN6ADDR_ANY_INIT  for
+       IPv6  address).   The  wildcard  address  is used by applications (typically
+       servers) that intend to accept connections on any  of  the  hosts's  network
+       addresses.  If node is not NULL, then the AI_PASSIVE flag is ignored.
+       (you can type any host name with specified port number e.g jayesh:10000 or localhost:10000)
+       
+       If  the  AI_PASSIVE  flag  is  not  set in hints.ai_flags, then the returned
+       socket addresses will be suitable for use  with  connect(2),  sendto(2),  or
+       sendmsg(2).   If  node  is NULL, then the network address will be set to the
+       loopback   interface   address   (INADDR_LOOPBACK   for   IPv4    addresses,
+       IN6ADDR_LOOPBACK_INIT  for  IPv6 address); this is used by applications that
+       intend to communicate with peers running on the same host.
+		
+*/
+	//getaddrinfo("pawar", port, &hints, &res);	
+	/*
+		type "jayesh":10000 in browser...only host name with jayesh and localhost will work and AI_PASSIVE flag will be ignored
+	
+	*/
+    for (p = res; p!=NULL; p=p->ai_next)	//check in list of socket addresses 
+    {
+        listenfd = socket (p->ai_family, p->ai_socktype, 0);
+        if (listenfd == -1) continue;
+        if (bind(listenfd, p->ai_addr, p->ai_addrlen) == 0) break;	//if bound to one then break
+    }
+    freeaddrinfo(res);
+    listen (listenfd, 1000);		//server is started now
+}
+//client connection
+void respond(int client)
+{
+    char msg[10000];
+    int  bytes_read;
+
+    memset((void*)msg, (int)'\0', 10000);
+
+    bytes_read=recv(client, msg, 10000, 0); //recv max 10000 bytes starting with 0 from the client
+    printf("%s", msg);						//prints the HTTP request header
+    send(client,"It works!!!",11,0);		//send the response back
+    shutdown (client, SHUT_RDWR);         //All further send and recieve operations are DISABLED...
+    close(client);
+}
+
+int main(int argc, char* argv[])
+{
+    struct sockaddr_in clientaddr;
+    socklen_t addrlen;
+    char PORT[6];
+    strcpy(PORT,argv[1]);		//argument 1 as port number
+
+    printf("Server started at port no. %s\n",PORT);
+    startServer(PORT);			//start the server
+
+	int client;
+    while (client)
+    {
+        addrlen = sizeof(clientaddr);
+        client= accept (listenfd, (struct sockaddr *) &clientaddr, &addrlen);	//accept connection from client(browser)
+        respond(client);					//respond to client
+    }
+    return 0;
+}

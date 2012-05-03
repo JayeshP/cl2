@@ -1,0 +1,4 @@
+Linux 2.6.35-31-generic (Jayesh) 	Friday 27 April 2012 	_i686_	(4 CPU)
+
+10:19:30  IST  CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest   %idle
+10:19:30  IST  all    2.29    0.40    0.41    0.92    0.00    0.02    0.00    0.00   95.95
